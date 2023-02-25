@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.sun.source.tree.BreakTree;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDate;
 
+/**
+ * Класс описывающий модель User
+ */
 @Data
 public class User {
 
