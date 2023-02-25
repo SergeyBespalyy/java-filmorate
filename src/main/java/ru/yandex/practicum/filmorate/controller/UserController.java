@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -12,12 +13,16 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Класс описывающий RestController "/users"
+ */
+
 @RestController
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
     private final Map<Integer, User> usersMap = new HashMap<>();
-    private static int id = 0;
+    private int id = 0;
 
     @GetMapping
     public Collection<User> getAllUsers() {
@@ -27,36 +32,43 @@ public class UserController {
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user, HttpServletRequest request) {
-
-        log.info("Получен запрос к эндпоинту: '{} {}', Строка параметров запроса: '{}'\",\n",
-                request.getMethod(), request.getRequestURI(), request.getQueryString());
-
-        if (usersMap.containsKey(user.getId())) {
-            throw new UserAlreadyExistException("Пользователь с данной электронной почтой уже зарегистрирован.");
-        } else {
-            if (user.getId() == 0) {
-                user.setId(++id);
+        try {
+            log.info("Получен запрос к эндпоинту: '{} {}', Строка параметров запроса: '{}'\",\n",
+                    request.getMethod(), request.getRequestURI(), request.getQueryString());
+            if (usersMap.containsKey(user.getId())) {
+                throw new UserAlreadyExistException("Пользователь с данной электронной почтой уже зарегистрирован.");
+            } else {
+                if (user.getId() == 0) {
+                    user.setId(++id);
+                }
+                String userName = user.getName();
+                if (userName == null) {
+                    user.setName(user.getLogin());
+                }
+                usersMap.put(user.getId(), user);
             }
-            String userName = user.getName();
-            if (userName == null) {
-                user.setName(user.getLogin());
-            }
-            usersMap.put(user.getId(), user);
-            log.info("Пользователь успешно добавлен!");
+        } catch (UserAlreadyExistException e) {
+            System.out.println(e.getMessage());
         }
         return user;
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user, HttpServletRequest request) {
-        log.info("Получен запрос к эндпоинту: '{} {}', Строка параметров запроса: '{}'\",\n",
-                request.getMethod(), request.getRequestURI(), request.getQueryString());
+    public User updateUser(@Valid @RequestBody User user, HttpServletResponse response) {
+        log.info("Получен запрос к эндпоинту на обновление USER");
 
-        if (!usersMap.containsKey(user.getId())) {
-            throw new ValidationException("ID не найден");
+        try {
+            if (!usersMap.containsKey(user.getId())) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                throw new ValidationException("ID не найден");
+            } else usersMap.put(user.getId(), user);
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
         }
-        usersMap.put(user.getId(), user);
         return user;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
 }
