@@ -6,8 +6,6 @@ import ru.yandex.practicum.filmorate.exceptions.FilmAlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
@@ -27,50 +25,40 @@ public class FilmController {
     private int id = 0;
 
     @GetMapping
-    public Collection<Film> getAllFilms(HttpServletRequest request) {
-        log.info("Получен запрос к эндпоинту: '{} {}', Строка параметров запроса: '{}'\",\n",
-                request.getMethod(), request.getRequestURI(), request.getQueryString());
+    public Collection<Film> getAllFilms() {
+        log.info("Получен запрос к эндпоинту: Get getAllFilms");
         return filmsMap.values();
     }
 
     @PostMapping
-    public Film addFilm(@Valid @RequestBody Film film, HttpServletResponse response) {
-        try {
-            log.info("Получен запрос к эндпоинту: /films");
+    public Film addFilm(@Valid @RequestBody Film film) {
 
-            if (film.getReleaseDate().isBefore(START_DATE)) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
-            } else if (filmsMap.containsKey(film.getId())) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                throw new FilmAlreadyExistException("Фильм с указанным названием уже был добавлен ранее");
-            } else {
-                film.setId(id + 1);
-                filmsMap.put(film.getId(), film);
-            }
-        } catch (FilmAlreadyExistException | ValidationException e) {
-            System.out.println(e.getMessage());
+        log.info("Получен запрос к эндпоинту: Post addFilm");
+
+        if (film.getReleaseDate().isBefore(START_DATE)) {
+            log.warn("ОШИБКА: Дата релиза — не раньше 28 декабря 1895 года");
+            throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
+        } else if (filmsMap.containsKey(film.getId())) {
+            log.warn("ОШИБКА: Фильм с указанным названием уже был добавлен ранее");
+            throw new FilmAlreadyExistException("Фильм с указанным названием уже был добавлен ранее");
+        } else {
+            film.setId(id + 1);
+            filmsMap.put(film.getId(), film);
         }
-
         return film;
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film, HttpServletRequest request, HttpServletResponse response) {
-        try {
-            log.info("Получен запрос к эндпоинту: '{} {}', Строка параметров запроса: '{}'\",\n",
-                    request.getMethod(), request.getRequestURI(), request.getQueryString());
-            if (film.getReleaseDate().isBefore(START_DATE)) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
-            } else if (!filmsMap.containsKey(film.getId())) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                throw new ValidationException("ID не найден");
-            } else {
-                filmsMap.put(film.getId(), film);
-            }
-        } catch (ValidationException e) {
-            System.out.println(e.getMessage());
+    public Film updateFilm(@Valid @RequestBody Film film) {
+        log.info("Получен запрос к эндпоинту: Put updateFilm");
+        if (film.getReleaseDate().isBefore(START_DATE)) {
+            log.warn("ОШИБКА: Дата релиза — не раньше 28 декабря 1895 года");
+            throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
+        } else if (!filmsMap.containsKey(film.getId())) {
+            log.warn("ОШИБКА: ID не найден");
+            throw new FilmAlreadyExistException("ID не найден");
+        } else {
+            filmsMap.put(film.getId(), film);
         }
         return film;
     }
