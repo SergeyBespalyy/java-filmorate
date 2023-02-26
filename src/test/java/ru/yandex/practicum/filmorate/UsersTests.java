@@ -55,7 +55,7 @@ public class UsersTests {
         resultActions = mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"login\":\"dolore ullamco\",\"email\":\"mail@mail.ru\",\"birthday\":\"1946-08-20\"}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
@@ -63,21 +63,21 @@ public class UsersTests {
         resultActions = mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"login\":\"dolore\",\"name\":\"Nick Name\",\"email\":\"mail.ru\",\"birthday\":\"1946-08-20\"}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void shouldAddUserPostWhenFailBirthday() throws Exception {
         resultActions = mockMvc.perform(post("/users").
                         contentType(MediaType.APPLICATION_JSON).content("{\"login\":\"dolore\",\"name\":\"Nick Name\",\"email\":\"mail@mail.ru\",\"birthday\":\"2446-08-20\"}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void shouldUpdatePutUserWhenStatus200() throws Exception {
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"login\":\"doloreUpdate\",\"name\":\"estadipisicing\",\"id\":1,\"email\":\"mail@yandex.ru\",\"birthday\":\"1976-09-20\"}"))
-                .andDo(print()).andExpect(status().isOk())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.email").value("mail@yandex.ru"))
                 .andExpect(jsonPath("$.name").value("estadipisicing"))
@@ -89,7 +89,7 @@ public class UsersTests {
     public void shouldUpdatePutWhenIdUnknown() throws Exception {
         resultActions = mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"login\":\"doloreUpdate\",\"name\":\"estadipisicing\",\"id\":9999,\"email\":\"mail@yandex.ru\",\"birthday\":\"1976-09-20\"}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
@@ -97,7 +97,7 @@ public class UsersTests {
         ResultActions resultActions = mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"login\":\"dolore\",\"email\":\"mail@mail.ru\",\"birthday\":\"1946-08-20\"}"))
-                .andDo(print()).andExpect(status().isOk());
+                .andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.name").value("dolore"));
     }
 }

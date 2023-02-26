@@ -53,7 +53,7 @@ public class FilmsTests {
         resultActions = mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"\",\"description\":\"Description\",\"releaseDate\":\"1900-03-25\",\"duration\":200}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
@@ -61,14 +61,14 @@ public class FilmsTests {
         resultActions = mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Film name\",\"description\":\"Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. Здесь они хотят разыскать господина Огюста Куглова, который задолжал им деньги, а именно 20 миллионов. о Куглов, который за время «своего отсутствия», стал кандидатом Коломбани.\",\"releaseDate\":\"1967-03-25\",\"duration\":200}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void shouldAddFilmPostWhenFailReleaseDate() throws Exception {
         resultActions = mockMvc.perform(post("/films").
                         contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"nisieiusmod\",\"description\":\"adipisicing\",\"releaseDate\":\"1890-03-25\",\"duration\":100}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
@@ -76,14 +76,14 @@ public class FilmsTests {
         resultActions = mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Film name\",\"description\":\"Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль.\",\"releaseDate\":\"1967-03-25\",\"duration\":-200}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void shouldUpdatePutFilmWhenStatus200() throws Exception {
         mockMvc.perform(put("/films")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"id\":1,\"name\":\"FilmUpdated\",\"releaseDate\":\"1989-04-17\",\"description\":\"Newfilmupdatedecription\",\"duration\":190,\"rate\":4}"))
-                .andDo(print()).andExpect(status().isOk())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("FilmUpdated"))
                 .andExpect(jsonPath("$.releaseDate").value("1989-04-17"))
@@ -96,6 +96,6 @@ public class FilmsTests {
     public void shouldUpdatePutWhenIdUnknown() throws Exception {
         resultActions = mockMvc.perform(put("/films")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"id\":9999,\"name\":\"FilmUpdated\",\"releaseDate\":\"1989-04-17\",\"description\":\"Newfilmupdatedecription\",\"duration\":190,\"rate\":4}"))
-                .andDo(print()).andExpect(status().is4xxClientError());
+                .andExpect(status().is4xxClientError());
     }
 }
