@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import ru.yandex.practicum.filmorate.controller.FilmController;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -25,13 +27,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class FilmsTests {
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private FilmController filmController;
     private ResultActions resultActions;
 
     @BeforeEach
     public void setUp() throws Exception {
-        filmController.setId(0);
         resultActions = mockMvc.perform(post("/films")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"nisieiusmod\",\"description\":\"adipisicing\",\"releaseDate\":\"1967-03-25\",\"duration\":100}"));

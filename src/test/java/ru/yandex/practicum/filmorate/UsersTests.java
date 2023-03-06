@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -23,16 +25,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class UsersTests {
-
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private UserController userController;
     private ResultActions resultActions;
 
     @BeforeEach
     public void setUp() throws Exception {
-        userController.setId(0);
         resultActions = mockMvc.perform(post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"login\":\"dolore\",\"name\":\"Nick Name\",\"email\":\"mail@mail.ru\",\"birthday\":\"1946-08-20\"}"));
@@ -43,7 +41,7 @@ public class UsersTests {
     public void shouldAddUserPost() throws Exception {
         resultActions.andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(2))
                 .andExpect(jsonPath("$.email").value("mail@mail.ru"))
                 .andExpect(jsonPath("$.name").value("Nick Name"))
                 .andExpect(jsonPath("$.login").value("dolore"))
