@@ -11,7 +11,7 @@ import java.util.Collection;
 
 public interface FilmStorage {
 
-    Collection<Film> findAllFilm();
+    Collection<Film> getAllFilm();
 
     Film findFilmById(Integer filmId);
 
