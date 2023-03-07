@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.Valid;
@@ -24,27 +25,27 @@ import java.util.Collection;
 @Slf4j
 public class FilmController {
 
-    private InMemoryFilmStorage inMemoryFilmStorage;
-    private FilmService filmService;
+    private final FilmStorage filmStorage;
+    private final FilmService filmService;
 
     @Autowired
-    public FilmController(InMemoryFilmStorage inMemoryFilmStorage,
+    public FilmController(FilmStorage filmStorage,
                           FilmService filmService) {
-        this.inMemoryFilmStorage = inMemoryFilmStorage;
+        this.filmStorage = filmStorage;
         this.filmService = filmService;
     }
 
     @GetMapping
     public Collection<Film> getAllFilms() {
         log.info("Получен запрос к эндпоинту: getAllFilms");
-        return inMemoryFilmStorage.findAllFilm();
+        return filmStorage.getAllFilm();
     }
 
     @GetMapping("/{id}")
     public Film getFilmsById(@PathVariable(required = false, name = "id") Integer id) {
         log.info("Получен запрос к эндпоинту: getFilmsById");
         if (id != null) {
-            return inMemoryFilmStorage.findFilmById(id);
+            return filmStorage.findFilmById(id);
         }
         log.warn("Некорректный FilmId");
         throw new IncorrectParameterException("FilmId");
@@ -53,13 +54,13 @@ public class FilmController {
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
         log.info("Получен запрос к эндпоинту: addFilm");
-        return inMemoryFilmStorage.addFilm(film);
+        return filmStorage.addFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
         log.info("Получен запрос к эндпоинту: updateFilm");
-        return inMemoryFilmStorage.updateFilm(film);
+        return filmStorage.updateFilm(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
