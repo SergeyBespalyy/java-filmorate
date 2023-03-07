@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -24,27 +24,27 @@ import java.util.Collection;
 @Slf4j
 public class UserController {
 
-    private InMemoryUserStorage inMemoryUserStorage;
-    private UserService userService;
+    private final UserStorage userStorage;
+    private final UserService userService;
 
     @Autowired
-    public UserController(InMemoryUserStorage inMemoryUserStorage,
+    public UserController(UserStorage userStorage,
                           UserService userService) {
-        this.inMemoryUserStorage = inMemoryUserStorage;
+        this.userStorage = userStorage;
         this.userService = userService;
     }
 
     @GetMapping
     public Collection<User> getAllUsers() {
         log.info("Получен запрос к эндпоинту: Get getAllUsers");
-        return inMemoryUserStorage.getAllUsers();
+        return userStorage.getAllUsers();
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable("id") Integer userId) {
         log.info("Получен запрос к эндпоинту: Get getUserById");
         if (userId != null && userId > 0) {
-            return inMemoryUserStorage.getUsersById(userId);
+            return userStorage.getUsersById(userId);
         }
         log.warn("Некорректный UserId");
         throw new IncorrectParameterException("userId");
@@ -53,13 +53,13 @@ public class UserController {
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         log.info("Получен запрос к эндпоинту: Post addUser");
-        return inMemoryUserStorage.addUser(user);
+        return userStorage.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         log.info("Получен запрос к эндпоинту: Put updateUser");
-        return inMemoryUserStorage.updateUser(user);
+        return userStorage.updateUser(user);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
