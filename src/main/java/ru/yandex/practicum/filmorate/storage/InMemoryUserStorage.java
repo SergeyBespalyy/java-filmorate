@@ -18,7 +18,7 @@ import java.util.Map;
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Integer, User> usersMap = new HashMap<>();
-    private static Integer userId = 1;
+    private Integer userId = 1;
 
     @Override
     public Collection<User> getAllUsers() {
@@ -35,13 +35,20 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User addUser(User user) {
         if (usersMap.containsKey(user.getId())) {
-            log.warn("ОШИБКА: Пользователь с данной электронной почтой уже зарегистрирован.");
-            throw new UserAlreadyExistException("Пользователь с данной электронной почтой уже зарегистрирован.");
+            log.warn("ОШИБКА: Пользователь с данным ID уже зарегистрирован.");
+            throw new UserAlreadyExistException("Пользователь с данным ID уже зарегистрирован.");
         } else {
             if (user.getName() == null || user.getName().isBlank()) {
                 user.setName(user.getLogin());
             }
             user.setId(getNextId());
+
+            boolean userEmail = usersMap.values().stream()
+                    .anyMatch(f -> f.getEmail().equals(user.getEmail()));
+            if (userEmail) {
+                log.warn("ОШИБКА: Пользователь с данной электронной почтой уже зарегистрирован.");
+                throw new UserAlreadyExistException("Пользователь с данной электронной почтой уже зарегистрирован.");
+            }
             usersMap.put(user.getId(), user);
         }
         return user;
@@ -59,14 +66,14 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void deleteUser(User user) {
-        if (usersMap.containsKey(user.getId())) {
+        if (!usersMap.containsKey(user.getId())) {
             log.warn("ОШИБКА: ID не найден");
             throw new UserAlreadyExistException("ID не найден");
         }
         usersMap.remove(user.getId());
     }
 
-    private static Integer getNextId() {
+    private Integer getNextId() {
         return userId++;
     }
 }
