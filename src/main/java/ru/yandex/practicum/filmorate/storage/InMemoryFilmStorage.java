@@ -20,11 +20,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     public final LocalDate START_DATE = LocalDate.of(1895, 12, 28);
     private final Map<Integer, Film> filmsMap = new HashMap<>();
-    private static Integer filmId = 1;
+    private Integer filmId = 1;
 
 
     @Override
-    public Collection<Film> findAllFilm() {
+    public Collection<Film> getAllFilm() {
         return filmsMap.values();
     }
 
@@ -54,6 +54,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public void deleteFilm(Film film) {
         if (!filmsMap.containsKey(film.getId())) {
+            log.warn("ОШИБКА: ID не найден");
             throw new FilmAlreadyExistException("ID не найден");
         }
         filmsMap.remove(film.getId());
@@ -73,7 +74,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
-    private static Integer getNextId() {
+    private Integer getNextId() {
         return filmId++;
     }
 }
