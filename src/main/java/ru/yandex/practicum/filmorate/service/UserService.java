@@ -3,9 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.UserAlreadyExistException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationIdException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,21 +19,21 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserService {
-    private InMemoryUserStorage inMemoryUserStorage;
+    private final UserStorage userStorage;
 
     @Autowired
-    public UserService(InMemoryUserStorage inMemoryUserStorage) {
-        this.inMemoryUserStorage = inMemoryUserStorage;
+    public UserService(UserStorage userStorage) {
+        this.userStorage = userStorage;
     }
 
     public User addFriend(Integer userId, Integer friendId) {
         if (userId < 0 || friendId < 0) {
             log.warn("Некорректный Id");
-            throw new UserAlreadyExistException("Некорректный ID, ID не может быть отрицательным");
+            throw new ValidationIdException("Некорректный ID, ID не может быть отрицательным");
         }
-        User user = inMemoryUserStorage.getUsersById(userId);
+        User user = userStorage.getUsersById(userId);
         user.setFriendsId(friendId);
-        User friend = inMemoryUserStorage.getUsersById(friendId);
+        User friend = userStorage.getUsersById(friendId);
         friend.setFriendsId(userId);
         return user;
     }
@@ -41,9 +41,9 @@ public class UserService {
     public User deleteFriend(Integer userId, Integer friendId) {
         if (userId < 0 || friendId < 0) {
             log.warn("Некорректный Id");
-            throw new UserAlreadyExistException("Некорректный ID, ID не может быть отрицательным");
+            throw new ValidationIdException("Некорректный ID, ID не может быть отрицательным");
         }
-        User user = inMemoryUserStorage.getUsersById(userId);
+        User user = userStorage.getUsersById(userId);
         user.getFriendsId().remove(friendId);
         return user;
     }
@@ -51,31 +51,29 @@ public class UserService {
     public List<User> findJoinFriends(Integer userId, Integer friendId) {
         if (userId < 0 || friendId < 0) {
             log.warn("Некорректный Id");
-            throw new UserAlreadyExistException("Некорректный ID, ID не может быть отрицательным");
+            throw new ValidationIdException("Некорректный ID, ID не может быть отрицательным");
         }
-        User user = inMemoryUserStorage.getUsersById(userId);
+        User user = userStorage.getUsersById(userId);
         Set<Integer> listFriendUser = user.getFriendsId();
-        User friend = inMemoryUserStorage.getUsersById(friendId);
+        User friend = userStorage.getUsersById(friendId);
         Set<Integer> listFriendToFriend = friend.getFriendsId();
 
-        Set<Integer> resultList = new HashSet<>();
-        resultList.addAll(listFriendToFriend);
-        resultList.addAll(listFriendUser);
+        Set<Integer> resultList = new HashSet<>(listFriendToFriend);
+        resultList.retainAll(listFriendUser);
         return resultList.stream()
-                .map(a -> inMemoryUserStorage.getUsersById(a))
-                .filter(a -> !a.getId().equals(userId) && !a.getId().equals(friendId))
+                .map(userStorage::getUsersById)
                 .collect(Collectors.toList());
     }
 
     public List<User> findFriends(Integer userId) {
         if (userId < 0) {
             log.warn("Некорректный Id");
-            throw new UserAlreadyExistException("Некорректный ID, ID не может быть отрицательным");
+            throw new ValidationIdException("Некорректный ID, ID не может быть отрицательным");
         }
-        User user = inMemoryUserStorage.getUsersById(userId);
+        User user = userStorage.getUsersById(userId);
         Set<Integer> listFriendUser = user.getFriendsId();
         return listFriendUser.stream()
-                .map(a -> inMemoryUserStorage.getUsersById(a))
+                .map(userStorage::getUsersById)
                 .collect(Collectors.toList());
     }
 }
