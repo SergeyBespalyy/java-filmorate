@@ -1,69 +1,86 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.FilmAlreadyExistException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * Класс описывающий RestController "/films"
+ * Класс описывающий RestController следующими энпоинтами:
+ * GET "/films/{id} -  получать фильм по их идентификатору
+ * PUT /films/{id}/like/{userId} - пользователь ставит лайк фильму.
+ * DELETE /films/{id}/like/{userId} - пользователь удаляет лайк.
+ * GET /films/popular?count={count} - возвращает список из первых count фильмов по количеству лайков.
  */
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    public final LocalDate START_DATE = LocalDate.of(1895, 12, 28);
-    private final Map<Integer, Film> filmsMap = new HashMap<>();
-    private int id = 0;
+
+    private final FilmStorage filmStorage;
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmStorage filmStorage,
+                          FilmService filmService) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
+    }
 
     @GetMapping
     public Collection<Film> getAllFilms() {
-        log.info("Получен запрос к эндпоинту: Get getAllFilms");
-        return filmsMap.values();
+        log.info("Получен запрос к эндпоинту: getAllFilms");
+        return filmStorage.getAllFilm();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmsById(@PathVariable(required = false, name = "id") Integer id) {
+        log.info("Получен запрос к эндпоинту: getFilmsById");
+        if (id != null) {
+            return filmStorage.findFilmById(id);
+        }
+        log.warn("Некорректный FilmId");
+        throw new IncorrectParameterException("FilmId");
     }
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
-
-        log.info("Получен запрос к эндпоинту: Post addFilm");
-
-        if (film.getReleaseDate().isBefore(START_DATE)) {
-            log.warn("ОШИБКА: Дата релиза — не раньше 28 декабря 1895 года");
-            throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
-        } else if (filmsMap.containsKey(film.getId())) {
-            log.warn("ОШИБКА: Фильм с указанным названием уже был добавлен ранее");
-            throw new FilmAlreadyExistException("Фильм с указанным названием уже был добавлен ранее");
-        } else {
-            film.setId(id + 1);
-            filmsMap.put(film.getId(), film);
-        }
-        return film;
+        log.info("Получен запрос к эндпоинту: addFilm");
+        return filmStorage.addFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
-        log.info("Получен запрос к эндпоинту: Put updateFilm");
-        if (film.getReleaseDate().isBefore(START_DATE)) {
-            log.warn("ОШИБКА: Дата релиза — не раньше 28 декабря 1895 года");
-            throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
-        } else if (!filmsMap.containsKey(film.getId())) {
-            log.warn("ОШИБКА: ID не найден");
-            throw new FilmAlreadyExistException("ID не найден");
-        } else {
-            filmsMap.put(film.getId(), film);
-        }
-        return film;
+        log.info("Получен запрос к эндпоинту: updateFilm");
+        return filmStorage.updateFilm(film);
     }
 
-    public void setId(int id) {
-        this.id = id;
+    @PutMapping("/{id}/like/{userId}")
+    public Film addLikeToFilm(@PathVariable("id") Integer filmId,
+                              @PathVariable("userId") Integer userId) {
+        log.info("Получен запрос к эндпоинту: addLikeToFilm");
+        return filmService.addLike(filmId, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public Film deleteLikeToFilm(@PathVariable("id") Integer filmId,
+                                 @PathVariable("userId") Integer userId) {
+        log.info("Получен запрос к эндпоинту: deleteLikeToFilm");
+        return filmService.deleteLike(filmId, userId);
+    }
+
+    @GetMapping("/popular")
+    public Collection<Film> getFilmsByCount(
+            @RequestParam(value = "count", defaultValue = "10", required = false) Integer count) {
+        log.info("Получен запрос к эндпоинту: getFilmsByCount");
+        return filmService.findPopularityFilm(count);
     }
 }

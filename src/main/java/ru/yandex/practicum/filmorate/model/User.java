@@ -1,8 +1,11 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
+
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Класс описывающий модель User
@@ -10,7 +13,8 @@ import java.time.LocalDate;
 @Data
 public class User {
 
-    private int id;
+    private Integer id;
+    private Set<Integer> friendsId = new HashSet<>();
 
     @Email(message = "Электронная почта не может быть пустой и должна содержать символ @")
     private String email;
@@ -25,4 +29,7 @@ public class User {
     @Past(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
 
+    public void setFriendsId(Integer friendId) {
+        friendsId.add(friendId);
+    }
 }

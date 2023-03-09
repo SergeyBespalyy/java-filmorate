@@ -1,62 +1,91 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.UserAlreadyExistException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * Класс описывающий RestController "/users"
+ * Класс описывающий RestController следующими энпоинтами:
+ * * GET "/users/{id} -  получать данные пользователя по идентификатору
+ * * PUT /users/{id}/friends/{friendId} - добавление в друзья
+ * * DELETE /users/{id}/friends/{friendId} - удаление из друзей
+ * * GET /users/{id}/friends -  возвращаем список пользователей, являющихся его друзьями.
  */
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private final Map<Integer, User> usersMap = new HashMap<>();
-    private int id = 0;
+
+    private final UserStorage userStorage;
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserStorage userStorage,
+                          UserService userService) {
+        this.userStorage = userStorage;
+        this.userService = userService;
+    }
 
     @GetMapping
     public Collection<User> getAllUsers() {
         log.info("Получен запрос к эндпоинту: Get getAllUsers");
-        return usersMap.values();
+        return userStorage.getAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable("id") Integer userId) {
+        log.info("Получен запрос к эндпоинту: Get getUserById");
+        if (userId != null && userId > 0) {
+            return userStorage.getUsersById(userId);
+        }
+        log.warn("Некорректный UserId");
+        throw new IncorrectParameterException("userId");
     }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         log.info("Получен запрос к эндпоинту: Post addUser");
-        if (usersMap.containsKey(user.getId())) {
-            log.warn("ОШИБКА: Пользователь с данной электронной почтой уже зарегистрирован.");
-            throw new UserAlreadyExistException("Пользователь с данной электронной почтой уже зарегистрирован.");
-        } else {
-            if (user.getId() == 0) {
-                user.setId(++id);
-            }
-            String userName = user.getName();
-            if (userName == null) {
-                user.setName(user.getLogin());
-            }
-            usersMap.put(user.getId(), user);
-        }
-        return user;
+        return userStorage.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         log.info("Получен запрос к эндпоинту: Put updateUser");
-        if (!usersMap.containsKey(user.getId())) {
-            log.warn("ОШИБКА: ID не найден");
-            throw new UserAlreadyExistException("ID не найден");
-        } else usersMap.put(user.getId(), user);
-        return user;
+        return userStorage.updateUser(user);
     }
 
-    public void setId(int id) {
-        this.id = id;
+    @PutMapping("/{id}/friends/{friendId}")
+    public User addFriend(@PathVariable("id") Integer userId,
+                          @PathVariable("friendId") Integer friendId) {
+        log.info("Получен запрос к эндпоинту: addFriend");
+        return userService.addFriend(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public User deleteFriend(@PathVariable("id") Integer userId,
+                             @PathVariable("friendId") Integer friendId) {
+        log.info("Получен запрос к эндпоинту: deleteFriend");
+        return userService.deleteFriend(userId, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> getUsersByFriend(@PathVariable("id") Integer userId) {
+        log.info("Получен запрос к эндпоинту: getUsersByFriend");
+        return userService.findFriends(userId);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> getJoinFriend(@PathVariable("id") Integer userId,
+                                          @PathVariable("otherId") Integer friendId) {
+        log.info("Получен запрос к эндпоинту: getJoinFriend");
+        return userService.findJoinFriends(userId, friendId);
     }
 }
